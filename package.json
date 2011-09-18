@@ -2,7 +2,7 @@
     "name": "connect-kyoto",
     "main": "./lib/connect-kyoto",
     "version": "0.0.1",
-    "description": "kyoto-tycoon session store for connect"
+    "description": "kyoto-tycoon session store for connect",
     "tags": ["connect-kyoto"],
     "keywords": ["session", "connect"],
     "author": [
