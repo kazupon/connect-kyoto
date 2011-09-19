@@ -59,6 +59,7 @@ var command_pattern = [
   { port: 1980, }, // for set
   { port: 1981, }, // for set
   { port: 1982, }, // for get
+  { port: 1983, }, // for destroy
   { port: 9999, }, // for error
 ];
 

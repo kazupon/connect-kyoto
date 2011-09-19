@@ -341,5 +341,88 @@ suite.addBatch({
       },
     },
   },
+}).addBatch({
+  'destroy a session': {
+    topic: function () { 
+      return function (options) {
+        var promise = new events.EventEmitter();
+        process.nextTick(function () {
+          var store;
+          try {
+            store = new KyotoStore(options);
+            store.set(options.set_session_id, options.session, function (err) {
+              store.destroy(options.destroy_session_id, function (err) {
+                if (err) {
+                  promise.emit('success', err);
+                } else {
+                  store.get(options.destroy_session_id, function (err, session) {
+                    promise.emit('success', (err ? err : session));
+                  });
+                }
+              });
+            });
+          } catch (e) {
+            promise.emit('success', e);
+          }
+        });
+        return promise;
+      };
+    },
+    'with specific session_id -> `foo`': {
+      topic: function (parent) {
+        return parent({
+          port: 1983,
+          set_session_id: 'foo',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+            name: 'kazupon',
+          },
+          destroy_session_id: 'foo',
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session_id -> `null`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          set_session_id: '123',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+          },
+          destroy_session_id: null,
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session_id -> `""`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          set_session_id: '123',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+          },
+          destroy_session_id: "",
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+  },
 }).export(module);
 
