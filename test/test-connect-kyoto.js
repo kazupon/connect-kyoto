@@ -4,46 +4,7 @@
 var vows = require('vows');
 var assert = require('assert');
 var events = require('events');
-var child_process = require('child_process');
 var KyotoStore = require('../lib/connect-kyoto').KyotoStore;
-
-
-//
-// commons
-//
-function run_ktserver(options, callback) {
-
-  try {
-
-    var options = options || {};
-    var args = [];
-    if (options.host) {
-      args.push('-host');
-      args.push(options.host);
-    }
-    if (options.port) {
-      args.push('-port');
-      args.push(options.port);
-    }
-
-    var ktserver = child_process.spawn('ktserver', args);
-    if (!ktserver) {
-      callback({
-        message: 'failed create ktserver child process',
-      });
-      return;
-    }
-
-    ktserver.on('exit', function (code) {
-      ktserver.stdin.end();
-    });
-
-    callback(null, ktserver);
-
-  } catch (e) {
-    callback(e);
-  }
-}
 
 
 //
