@@ -57,17 +57,15 @@ suite.addBatch({
       return function (options) {
         var promise = new events.EventEmitter();
         process.nextTick(function () {
-          run_ktserver(options, function (err, ktserver) {
-            try {
-              var store = new KyotoStore(options);
-              promise.emit('success', store);
-            } catch (e) {
-              promise.emit('success', e);
-            } finally {
-              ktserver.stdin.end();
-              ktserver.kill();
-            }
-          });
+          var store;
+          try {
+            store = new KyotoStore(options);
+            promise.emit('success', store);
+          } catch (e) {
+            promise.emit('success', e);
+          } finally {
+            //store && store.end();
+          }
         });
         return promise;
       };
@@ -155,28 +153,24 @@ suite.addBatch({
       return function (options) {
         var promise = new events.EventEmitter();
         process.nextTick(function () {
-          run_ktserver(options, function (err, ktserver) {
-            try {
-              var store = new KyotoStore(options);
-              store.set(options.session_id, options.session, function (err) {
-                if (err) {
-                  promise.emit('success', err);
-                  ktserver.stdin.end();
-                  ktserver.kill();
-                } else {
-                  store.get(options.session_id, function (err, session) {
-                    promise.emit('success', session);
-                    ktserver.stdin.end();
-                    ktserver.kill();
-                  });
-                }
-              });
-            } catch (e) {
-              promise.emit('success', e);
-              ktserver.stdin.end();
-              ktserver.kill();
-            }
-          });
+          var store;
+          try {
+            store = new KyotoStore(options);
+            store.set(options.session_id, options.session, function (err) {
+              if (err) {
+                promise.emit('success', err);
+                //store.end();
+              } else {
+                store.get(options.session_id, function (err, session) {
+                  promise.emit('success', session);
+                  //store.end();
+                });
+              }
+            });
+          } catch (e) {
+            promise.emit('success', e);
+            //store && store.end();
+          }
         });
         return promise;
       };
@@ -184,7 +178,7 @@ suite.addBatch({
     'with specific session_id -> `123`, session -> `{ cookie: { maxAge: 2000 }, name: "kazupon" }`': {
       topic: function (parent) {
         return parent({
-          port: 1800,
+          port: 1980,
           session_id: '123',
           session: {
             cookie: {
@@ -295,7 +289,7 @@ suite.addBatch({
     'with specific session -> `cookie empty`': {
       topic: function (parent) {
         return parent({
-          port: 1801,
+          port: 1981,
           session_id: '123',
           session: {
             cookie: {
