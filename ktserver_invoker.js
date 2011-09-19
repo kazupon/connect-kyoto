@@ -54,10 +54,11 @@ function run_ktserver(options, callback) {
 
 var invokers = [];
 var command_pattern = [
-  {}, // default
-  { port: 1979, host: 'localhost', },
-  { port: 1980, },
-  { port: 1981, },
+  {}, // for new
+  { port: 1979, host: 'localhost', }, // for new
+  { port: 1980, }, // for set
+  { port: 1981, }, // for set
+  { port: 1982, }, // for get
   { port: 9999, }, // for error
 ];
 

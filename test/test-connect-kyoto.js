@@ -24,8 +24,6 @@ suite.addBatch({
             promise.emit('success', store);
           } catch (e) {
             promise.emit('success', e);
-          } finally {
-            //store && store.end();
           }
         });
         return promise;
@@ -120,17 +118,14 @@ suite.addBatch({
             store.set(options.session_id, options.session, function (err) {
               if (err) {
                 promise.emit('success', err);
-                //store.end();
               } else {
                 store.get(options.session_id, function (err, session) {
                   promise.emit('success', session);
-                  //store.end();
                 });
               }
             });
           } catch (e) {
             promise.emit('success', e);
-            //store && store.end();
           }
         });
         return promise;
@@ -261,6 +256,88 @@ suite.addBatch({
       'should get a session object': function (session) {
         assert.isNotNull(session);
         assert.equal(86400, session.cookie.maxAge);
+      },
+    },
+  },
+}).addBatch({
+  'get a session': {
+    topic: function () {
+      return function (options) {
+        var promise = new events.EventEmitter();
+        process.nextTick(function () {
+          var store;
+          try {
+            store = new KyotoStore(options);
+            store.set(options.set_session_id, options.session, function (err) {
+              store.get(options.get_session_id, function (err, session) {
+                promise.emit('success', (err ? err : session));
+              });
+            });
+          } catch (e) {
+            promise.emit('success', e);
+          }
+        });
+        return promise;
+      };
+    },
+    'with specific session_id -> `123`': {
+      topic: function (parent) {
+        return parent({
+          port: 1982,
+          set_session_id: '123',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+            name: 'kazupon',
+          },
+          get_session_id: '123',
+        });
+      },
+      'should get a session object': function (session) {
+        assert.isNotNull(session);
+        assert.deepEqual({
+          cookie: {
+            maxAge: 2000,
+          },
+          name: 'kazupon',
+        }, session);
+      },
+    },
+    'with illegal session_id -> `null`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          set_session_id: '123',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+          },
+          get_session_id: null,
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session_id -> `""`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          set_session_id: '123',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+          },
+          get_session_id: "",
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
       },
     },
   },
