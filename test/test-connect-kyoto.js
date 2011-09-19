@@ -35,7 +35,6 @@ function run_ktserver(options, callback) {
     }
 
     ktserver.on('exit', function (code) {
-      console.error('ktserver exit code : ' + code);
       ktserver.stdin.end();
     });
 
@@ -147,6 +146,166 @@ suite.addBatch({
       'should create a KyotoStore object': function (store) {
         assert.isNotNull(store);
         assert.isObject(store);
+      },
+    },
+  },
+}).addBatch({
+  'set a session': {
+    topic: function () {
+      return function (options) {
+        var promise = new events.EventEmitter();
+        process.nextTick(function () {
+          run_ktserver(options, function (err, ktserver) {
+            try {
+              var store = new KyotoStore(options);
+              store.set(options.session_id, options.session, function (err) {
+                if (err) {
+                  promise.emit('success', err);
+                  ktserver.stdin.end();
+                  ktserver.kill();
+                } else {
+                  store.get(options.session_id, function (err, session) {
+                    promise.emit('success', session);
+                    ktserver.stdin.end();
+                    ktserver.kill();
+                  });
+                }
+              });
+            } catch (e) {
+              promise.emit('success', e);
+              ktserver.stdin.end();
+              ktserver.kill();
+            }
+          });
+        });
+        return promise;
+      };
+    },
+    'with specific session_id -> `123`, session -> `{ cookie: { maxAge: 2000 }, name: "kazupon" }`': {
+      topic: function (parent) {
+        return parent({
+          port: 1800,
+          session_id: '123',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+            name: 'kazupon',
+          },
+        });
+      },
+      'should get a session object': function (session) {
+        assert.isNotNull(session);
+        assert.deepEqual({
+          cookie: {
+            maxAge: 2000,
+          },
+          name: 'kazupon',
+        }, session);
+      },
+    },
+    'with illegal session_id -> `null`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          session_id: null,
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+          },
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session_id -> `""`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          session_id: '',
+          session: {
+            cookie: {
+              maxAge: 2000,
+            },
+          },
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session -> `nothing`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          session_id: '123',
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session -> `null`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          session_id: '123',
+          session: null,
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session -> `cookie nothing`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          session_id: '123',
+          session: {
+          },
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with illegal session -> `cookie null`': {
+      topic: function (parent) {
+        return parent({
+          port: 9999,
+          session_id: '123',
+          session: {
+            cookie: null,
+          },
+        });
+      },
+      'should pass an error object': function (err) {
+        assert.isNotNull(err);
+        assert.instanceOf(err, Error);
+      },
+    },
+    'with specific session -> `cookie empty`': {
+      topic: function (parent) {
+        return parent({
+          port: 1801,
+          session_id: '123',
+          session: {
+            cookie: {
+            },
+          },
+        });
+      },
+      'should get a session object': function (session) {
+        assert.isNotNull(session);
+        assert.equal(86400, session.cookie.maxAge);
       },
     },
   },
