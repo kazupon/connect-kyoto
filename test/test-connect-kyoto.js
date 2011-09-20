@@ -1,5 +1,5 @@
 //
-// imports
+// import(s)
 //
 var vows = require('vows');
 var assert = require('assert');
@@ -8,7 +8,7 @@ var KyotoStore = require('../lib/connect-kyoto').KyotoStore;
 
 
 //
-// tests
+// test(s)
 //
 
 var suite = vows.describe('connect-kyoto tests');
@@ -422,6 +422,135 @@ suite.addBatch({
         assert.isNotNull(err);
         assert.instanceOf(err, Error);
       },
+    },
+  },
+}).addBatch({
+  'store initilizing,': {
+    topic: function () { 
+      var promise = new events.EventEmitter();
+      var store = new KyotoStore({
+        port: 1984,
+      });
+      store.length(function (err, len) {
+        promise.emit('success', {
+          err: err,
+          len: len,
+          store: store,
+        });
+      });
+      return promise;
+    },
+    'should be length `0`': function (val) {
+      assert.equal(0, val.len);
+    },
+    'should not pass an error': function (val) {
+      assert.isNull(val.err);
+    },
+    'set a session,': {
+      topic: function (parent) {
+        var promise = new events.EventEmitter();
+        var store = parent.store;
+        store.set('foo', {
+          cookie: {
+            maxAge: 2000,
+          },
+        }, function (err, data) {
+          store.length(function (err, len) {
+            promise.emit('success', {
+              err: err,
+              len: len,
+              store: store,
+            });
+          });
+        });
+        return promise;
+      },
+      'should be length `1`': function (val) {
+        assert.equal(1, val.len);
+      },
+      'should not pass an error': function (val) {
+        assert.isNull(val.err);
+      },
+      'set a session,': {
+        topic: function (parent) {
+          var promise = new events.EventEmitter();
+          var store = parent.store;
+          store.set('bar', {
+            cookie: {
+              maxAge: 3600,
+            },
+          }, function (err, data) {
+            store.length(function (err, len) {
+              promise.emit('success', {
+                err: err,
+                len: len,
+                store: store,
+              });
+            });
+          });
+          return promise;
+        },
+        'should be length `2`': function (val) {
+          assert.equal(2, val.len);
+        },
+        'should not pass an error': function (val) {
+          assert.isNull(val.err);
+        },
+        'destroy a session,': {
+          topic: function (parent) {
+            var promise = new events.EventEmitter();
+            var store = parent.store;
+            store.destroy('foo', function (err) {
+              store.length(function (err, len) {
+                promise.emit('success', {
+                  err: err,
+                  len: len,
+                  store: store,
+                });
+              });
+            });
+            return promise;
+          },
+          'should be length `1`': function (val) {
+            assert.equal(1, val.len);
+          },
+          'should not pass an error': function (val) {
+            assert.isNull(val.err);
+          },
+        },
+      },
+    },
+  },
+}).addBatch({
+  'clear sessions': {
+    topic: function () {
+      var promise = new events.EventEmitter();
+      store = new KyotoStore({
+        port: 1985,
+      });
+      var max = 100;
+      var count = 0;
+      var session = {
+        cookie: {
+          maxAge: 2000,
+        },
+      };
+      for (var i = 0; i < max; i++) {
+        store.set(i, session, function (err, data) {
+          if (count === (max - 1)) {
+            store.clear(function (err) {
+              store.length(function (err, len) {
+                promise.emit('success', len);
+              });
+            });
+          }
+          count++;
+        });
+      }
+      return promise;
+    },
+    'should be length `0`': function (len) {
+      assert.equal(0, len);
     },
   },
 }).export(module);
