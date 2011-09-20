@@ -1,15 +1,10 @@
-0.0.3 / 2011-09-20
+0.1.0 / 2011-09-20
 ==================
 
- * Support 'destroy' methods
-
-0.0.2 / 2011-09-20
-==================
-
- * Support 'get', 'set' methods
+ * First release
 
 0.0.1 / 2011-09-19
 ==================
 
- * first commit
+ * First commit
 
