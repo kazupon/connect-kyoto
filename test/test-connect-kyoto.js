@@ -384,7 +384,7 @@ suite.addBatch({
       },
       'should pass an error object': function (err) {
         assert.isNotNull(err);
-        assert.instanceOf(err, Error);
+        assert.isUndefined(err);
       },
     },
     'with illegal session_id -> `null`': {
