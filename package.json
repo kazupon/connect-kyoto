@@ -11,7 +11,7 @@
         "url": "https://github.com/kazupon/connect-kyoto.git"
     },
     "dependencies": {
-        "connect": ">= 1.5.2",
+        "connect": "1.x",
         "kyoto-tycoon": ">= 0.0.7"
     },
     "devDependencies": {

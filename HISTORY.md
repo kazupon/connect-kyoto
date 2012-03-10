@@ -1,3 +1,6 @@
+0.1.2 / 2012-03-10
+ * Fixed connect version.
+
 0.1.1 / 2011-10-04
 ==================
  * Fixed the session bug.
